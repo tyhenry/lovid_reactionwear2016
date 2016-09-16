@@ -5,6 +5,7 @@
 #include "ofxOpenCv.h"
 #include "ofxGui.h"
 #include "Searching.hpp"
+#include "Mapping.hpp"
 
 class ofApp : public ofBaseApp{
 
@@ -50,6 +51,7 @@ public:
     
     int stage = SearchingStage;
     Searching searching;
+    Mapping mapping;
     
     bool bHasIR = false;
     ofVec2f pos;
@@ -71,5 +73,7 @@ public:
     
     // 0 searching
     int bubble = 0; // 0:5 = none, intimate, personal, social, public, full
+    
+    bool bDrawMiniPyramid = false;
     
 };

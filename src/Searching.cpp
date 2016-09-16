@@ -8,8 +8,8 @@
 
 #include "Searching.hpp"
 
-Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<ofVideoPlayer>& vids):
-    _w(ofWidth), _h(ofHeight)
+Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<ofVideoPlayer>& vids)
+    :_w(ofWidth), _h(ofHeight)
 {
     
     // load vids from vids vector
@@ -67,7 +67,7 @@ void Searching::draw(float x, float y, float w, float h){
         // - mask the video at radius of 1/2 video height
         // - then draw at height scale of 2*circle radius
         // here, masking is done without video scale (video must be size of screen):
-        ofTexture& vTex = _vids[b]->getTexture();
+        ofTexture vTex = _vids[b]->getTexture();
         vTex.setAlphaMask(circleMask(_radii[b]));
         vTex.draw(x,y,w,h);
     }

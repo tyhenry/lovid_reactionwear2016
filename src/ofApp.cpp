@@ -30,11 +30,13 @@ void ofApp::setup(){
     for (auto file : dir.getFiles()){
         ofVideoPlayer vid;
         vid.load(file.path());
+        vid.setLoopState(OF_LOOP_NORMAL); // loop
         vids.push_back(vid);
     }
     
     // stages
     searching = Searching(width, height, height*0.5-100, vids);
+    mapping = Mapping(width, height, 20, width/5, 0, width, vids);
 }
 
 //--------------------------------------------------------------
@@ -45,11 +47,17 @@ void ofApp::update(){
     switch (stage) {
         case SearchingStage:{
             
-            searching.update(pos,bHasIR);
+            if (searching.update(pos,bHasIR)) {
+                mapping.start();
+                stage++;
+            }
+            
             
             break;
         }
         case MappingStage:{
+            
+            if (mapping.update(pos,bHasIR)) stage++;
 
             break;
         }
@@ -81,6 +89,13 @@ void ofApp::draw(){
             break;
         }
         case MappingStage:{
+            
+            mapping.draw();
+            if (bDrawMiniPyramid) {
+                float mW = width/5;
+                float mH = mW/width*height;
+                mapping.drawMiniPyramid(width-mW-20,20,mW,mH);
+            }
             
             break;
         }
@@ -261,6 +276,13 @@ void ofApp::keyReleased(int key){
     }
     else if (key == OF_KEY_RIGHT){
         nextStage();
+    }
+    
+    // draw mini pyramid
+    else if (key == 'y' || key == 'Y'){
+        bDrawMiniPyramid = !bDrawMiniPyramid;
+        string p = bDrawMiniPyramid ? "ON" : "OFF";
+        ofLogNotice("keyReleased") << "drawing mini pyramid: " << p;
     }
 
 }
