@@ -16,7 +16,8 @@ Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<o
     for (int i=0; i<=Full; i++){
         _vids.push_back(&(vids[i]));
     }
-    mask.allocate(_w,_h);
+    screen.allocate(_w,_h, GL_RGBA);
+    mask.allocate(_w,_h, GL_RGBA);
     ofSetCircleResolution(60);
     
     for (auto vid : _vids){
@@ -35,24 +36,28 @@ Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<o
     _radii.push_back(radSoc);
     _radii.push_back(radiusPublic);
     _radii.push_back(radFul);
+    
+    // start outside vid
+    _vids[Full]->setVolume(1);
+    _vids[Full]->play();
 }
 
 bool Searching::update(ofVec2f pos, bool hasIR){
     
-    if (bubble == Full && hasIR) {
-        ofLogNotice("Searching") << "next stage please!";
-       return true; // done, next stage
+    if (bubble == Intimate) {
+        if (hasIR){
+            ofLogNotice("Searching") << "next stage please!";
+            return true; // done, next stage
+        }
+    }
+    else {
+        // distance from center to create successive bubbles
+        float maxHitRadius = _radii[bubble-1];
+        float dist = pos.distance(ofVec2f(_w*0.5,_h*0.5));
+        if (dist < maxHitRadius) nextBubble();
     }
     
-    // distance from center to create successive bubbles
-    float minHitRadius = (bubble == -1) ? 0 : _radii[bubble];
-    float maxHitRadius = _radii[bubble+1];
-    
-    float dist = pos.distance(ofVec2f(_w*0.5,_h*0.5));
-                              
-    if (dist >= minHitRadius && dist <= maxHitRadius) nextBubble();
-    
-    for (int b=0; b<=bubble; b++){
+    for (int b=Full; b>=bubble; b--){
         _vids[b]->update();
     }
     
@@ -61,21 +66,29 @@ bool Searching::update(ofVec2f pos, bool hasIR){
 
 void Searching::draw(float x, float y, float w, float h){
     
-    for (int b=bubble; b>=0; b--){ // draw full -> intimate
-        // note, the masking could be altered to scale the video
-        // i.e.
+    for (int b=Full; b>=bubble; b--){ // draw full -> intimate
+        // note, the masking could be altered to scale the video:
         // - mask the video at radius of 1/2 video height
         // - then draw at height scale of 2*circle radius
+        
         // here, masking is done without video scale (video must be size of screen):
-        ofTexture vTex = _vids[b]->getTexture();
-        vTex.setAlphaMask(circleMask(_radii[b]));
-        vTex.draw(x,y,w,h);
+        // - draw vid at screen size
+        screen.begin();
+        ofClear(0);
+        _vids[b]->draw(0,0,_w,_h);
+        screen.end();
+        ofTexture sTex = screen.getTexture();
+        // - set circle mask
+        float inRad = b > 0 ? _radii[b-1] : 0;
+        float outRad = _radii[b];
+        sTex.setAlphaMask(circleMask(_w,_h,inRad,outRad));
+        sTex.draw(x,y,w,h);
     }
 }
 
 int Searching::nextBubble() {
-    if (bubble < Full){
-        bubble++;
+    if (bubble > Intimate){
+        bubble--;
         ofLogNotice("Searching") << "next bubble, now: " << bubble;
         _vids[bubble]->play();
         _vids[bubble]->setVolume(1);
@@ -83,14 +96,19 @@ int Searching::nextBubble() {
     return bubble;
 }
 
-ofTexture& Searching::circleMask(float radius){
+ofTexture& Searching::circleMask(float width, float height, float inRadius, float outRadius){
     mask.begin();
     ofClear(0);
+    ofPopMatrix();
+    ofTranslate(width*0.5,height*0.5);
     ofPushStyle();
-    ofSetColor(255);
     ofFill();
-    ofDrawCircle(_w*0.5,_h*0.5,radius);
+    ofSetColor(255);
+    ofDrawCircle(0,0,outRadius);
+    ofSetColor(0);
+    ofDrawCircle(0,0,inRadius);
     ofPopStyle();
+    ofPopMatrix();
     mask.end();
     return mask.getTexture();
 }

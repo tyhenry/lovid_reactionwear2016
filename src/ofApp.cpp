@@ -24,19 +24,41 @@ void ofApp::setup(){
     height = ofGetHeight();
     
     // load videos
-    ofDirectory dir(ofToDataPath(""));
-    dir.allowExt("mp4");
-    dir.listDir();
-    for (auto file : dir.getFiles()){
+    
+    // searching vids
+    ofDirectory searchingDir(ofToDataPath("searching"));
+    searchingDir.allowExt("mp4");
+    searchingDir.listDir();
+    for (auto file : searchingDir.getFiles()){
         ofVideoPlayer vid;
         vid.load(file.path());
         vid.setLoopState(OF_LOOP_NORMAL); // loop
-        vids.push_back(vid);
+        searchingVids.push_back(vid);
+    }
+    
+    // mapping vids
+    ofVideoPlayer mapBgVid;
+    mapBgVid.load("mapping/bg.mp4");
+    mapBgVid.setLoopState(OF_LOOP_NORMAL);
+    mappingVids.push_back(mapBgVid); // bg = vector[0]
+    
+    ofDirectory mappingDir(ofToDataPath("mapping"));
+    mappingDir.allowExt("mp4");
+    mappingDir.listDir();
+    for (auto file : mappingDir.getFiles()){
+        if (file.getFileName() != "bg.mp4"){
+            ofVideoPlayer vid;
+            vid.load(file.path());
+            vid.setLoopState(OF_LOOP_NORMAL); // loop
+            mappingVids.push_back(vid);
+        }
     }
     
     // stages
-    searching = Searching(width, height, height*0.5-100, vids);
-    mapping = Mapping(width, height, 20, width/5, 0, width, vids);
+    searching = Searching(width, height, height*0.5-100, searchingVids);
+        // width, height, max radius, vids
+    mapping = Mapping(width, height, 20, width/5, 100, width-100, mappingVids);
+        // width, height, min vid width, max vid width, pyramid y, pyramid width, vids
 }
 
 //--------------------------------------------------------------
@@ -48,7 +70,7 @@ void ofApp::update(){
         case SearchingStage:{
             
             if (searching.update(pos,bHasIR)) {
-                mapping.start();
+                mapping.start(searchingVids);
                 stage++;
             }
             

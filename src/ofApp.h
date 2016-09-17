@@ -53,6 +53,9 @@ public:
     Searching searching;
     Mapping mapping;
     
+    vector<ofVideoPlayer> searchingVids;
+    vector<ofVideoPlayer> mappingVids;
+    
     bool bHasIR = false;
     ofVec2f pos;
     
@@ -64,15 +67,11 @@ public:
     ofxCvContourFinder contourFinder;
     int blobIndex = -1;
     ofVec2f centroid;
-    
-    vector<ofVideoPlayer> vids;
+
     
     float width, height;
     
     // stages data
-    
-    // 0 searching
-    int bubble = 0; // 0:5 = none, intimate, personal, social, public, full
     
     bool bDrawMiniPyramid = false;
     

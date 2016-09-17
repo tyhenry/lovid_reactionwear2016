@@ -19,13 +19,14 @@ public:
             float minVidWidth, float maxVidWidth, float pyramidY, float pyramidWidth,
             vector<ofVideoPlayer>& vids);
     
-    void start();
+    void start(vector<ofVideoPlayer>& vids);
     bool update(ofVec2f pos, bool hasIR);
     void draw();
     void drawMiniPyramid(float x, float y, float w, float h);
 
 protected:
     float _w, _h, _minVW, _maxVW, _pyrY, _pyrW;
+    ofVideoPlayer* bgVid;
     vector<ofVideoPlayer*> _vids;
     vector<PyrVid> _pyrVids; // saves vid and location
     bool _bHasIR = true;
@@ -34,4 +35,6 @@ protected:
     
     ofFbo _miniPyramid; // used to determine actual pyramid coverage speedily
     float _pyrArea = 0, _curArea = 0;
+    
+    ofFbo _screen;
 };

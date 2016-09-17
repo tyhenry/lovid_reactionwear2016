@@ -14,18 +14,23 @@ Mapping::Mapping(float ofWidth, float ofHeight,
     :_w(ofWidth), _h(ofHeight), _minVW(minVidWidth), _maxVW(maxVidWidth), _pyrY(pyramidY), _pyrW(pyramidWidth)
 {
     
-    for (auto& vid : vids){
-        _vids.push_back(&vid);
+    bgVid = &vids[0];
+    for (int i=1; i<vids.size(); i++){
+        vids[i].stop();
+        _vids.push_back(&vids[i]);
     }
     
     // make mini pyramid for coverage calc
     _miniPyramid.allocate(100,100/_w*_h,GL_RGBA);
     
+    // screen fbo for inverse draw
+    _screen.allocate(_w,_h,GL_RGBA);
+    
 }
 
-void Mapping::start(){
-    for (auto vid : _vids){
-        vid->stop();
+void Mapping::start(vector<ofVideoPlayer>& vids){
+    for (auto vid : vids){
+        vid.stop();
     }
     _miniPyramid.begin();
     ofClear(0);
@@ -46,17 +51,18 @@ bool Mapping::update(ofVec2f pos, bool hasIR){
         
         // select video
         ofVideoPlayer* vid;
-        int idx = (int)ofRandom(0,_vids.size()); // random video
+        int idx = (int)ofRandom(1,_vids.size()); // random video
         if (idx >= _vids.size()) idx = _vids.size()-1; // rare edge case
         vid = _vids[idx];
         vid->play();
         
         // calc position/size
-        float xRange = ofMap(pos.y, _pyrY,_h, 0,_pyrW);
-        pos.x = ofMap(pos.x,0,_w,_pyrW*0.5-xRange*0.5,_pyrW*0.5+xRange*0.5);
-        float vidW = ofMap(pos.y, 0, _h, _minVW, _maxVW);
-        float vidH = ofMap(vidW, 0, vid->getWidth(), 0, vid->getHeight());
-        ofRectangle vidRect(pos-ofVec2f(vidW*0.5,vidH*0.5),vidW,vidH);
+        pos.y = ofMap(pos.y,0,_h,_pyrY,_h,true); // map y to pyramid height
+        float xRange = ofMap(pos.y, _pyrY,_h, 0,_pyrW,true); // get x range per y
+        pos.x = ofMap(pos.x,0,_w,_w*0.5-xRange*0.5,_w*0.5+xRange*0.5,true); // map x to x range
+        float vidW = ofMap(pos.y, _pyrY, _h, _minVW, _maxVW); // get vid width per y
+        float vidH = vidW/vid->getWidth()*vid->getHeight(); // calc vid height per vid width
+        ofRectangle vidRect(pos-ofVec2f(vidW*0.5,vidH*0.5),vidW,vidH); // center vid on pos
         
         // add to pyramid
         PyrVid pyrVid;
@@ -103,9 +109,13 @@ bool Mapping::update(ofVec2f pos, bool hasIR){
 }
 
 void Mapping::draw(){
-    for (auto pyrVid : _pyrVids){
-        ofRectangle& r = pyrVid.second;
-        pyrVid.first->draw(r.x,r.y,r.width,r.height);
+    if (true/*_bHasIR*/){
+        for (auto pyrVid : _pyrVids){
+            ofRectangle& r = pyrVid.second;
+            pyrVid.first->draw(r.x,r.y,r.width,r.height);
+        }
+    } else {
+        
     }
 }
 
@@ -114,17 +124,18 @@ void Mapping::drawMiniPyramid(float x, float y, float w, float h){
     
     ofPushMatrix();
     ofTranslate(x,y);
+    ofScale(w/_w,h/_h);
     ofPushStyle();
     ofSetColor(255,0,0);
     ofSetLineWidth(1);
     
     // pyramid outline
-    ofDrawLine(w*0.5,0,0,h);
-    ofDrawLine(w*0.5,0,w,h);
+    ofDrawLine(_w*0.5,_pyrY,_w*0.5-_pyrW*0.5,_h);
+    ofDrawLine(_w*0.5,_pyrY,_w*0.5+_pyrW*0.5,_h);
     
     // draw box outline
     ofNoFill();
-    ofDrawRectangle(0,0,w,h);
+    ofDrawRectangle(0,0,_w,_h);
     ofPopStyle();
     ofPopMatrix();
 }

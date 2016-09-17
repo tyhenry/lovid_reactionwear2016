@@ -29,11 +29,12 @@ public:
     
 protected:
     float _w, _h;
-    int bubble = -1; // no vid at start
+    int bubble = Full;
     vector<ofVideoPlayer*> _vids;
     vector<float> _radii;
     
+    ofFbo screen;
     ofFbo mask;
-    ofTexture& circleMask(float radius); // makes a circle mask in mask fbo
+    ofTexture& circleMask(float width, float height, float inRadius, float outRadius); // makes a circle mask in mask fbo
     
 };
