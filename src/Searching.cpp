@@ -36,10 +36,6 @@ Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<o
     _radii.push_back(radSoc);
     _radii.push_back(radiusPublic);
     _radii.push_back(radFul);
-    
-    // start outside vid
-    _vids[Full]->setVolume(1);
-    _vids[Full]->play();
 }
 
 bool Searching::update(ofVec2f pos, bool hasIR){
@@ -81,8 +77,20 @@ void Searching::draw(float x, float y, float w, float h){
         // - set circle mask
         float inRad = b > 0 ? _radii[b-1] : 0;
         float outRad = _radii[b];
-        sTex.setAlphaMask(circleMask(_w,_h,inRad,outRad));
+        sTex.setAlphaMask(circleMask(_w,_h,0,outRad));
         sTex.draw(x,y,w,h);
+    }
+}
+
+void Searching::start(){
+    // start outside vid
+    _vids[Full]->setVolume(1);
+    _vids[Full]->play();
+}
+
+void Searching::end(){
+    for (auto vid : _vids){
+        vid->stop();
     }
 }
 

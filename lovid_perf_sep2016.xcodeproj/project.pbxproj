@@ -15,7 +15,14 @@
 		21A059755481CC0BF969FD2D /* keep_alive.c in Sources */ = {isa = PBXBuildFile; fileRef = A3528DDFF05B00283552455D /* keep_alive.c */; };
 		250A95BA26587BE85DB0A353 /* ofxCvColorImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE9C7160245B19131DAE6128 /* ofxCvColorImage.cpp */; };
 		255A7B680DC81E543C875794 /* usb_libusb10.c in Sources */ = {isa = PBXBuildFile; fileRef = 28F9707464BA3FF98E05096C /* usb_libusb10.c */; };
+		2F70D63F1D9421770037528A /* ofxVideoRecorder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F70D63D1D9421770037528A /* ofxVideoRecorder.cpp */; };
+		2F70D6491D946C0A0037528A /* ofxXmlSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F70D6421D946C0A0037528A /* ofxXmlSettings.cpp */; };
+		2F70D64A1D946C0A0037528A /* tinyxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F70D6451D946C0A0037528A /* tinyxml.cpp */; };
+		2F70D64B1D946C0A0037528A /* tinyxmlerror.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F70D6471D946C0A0037528A /* tinyxmlerror.cpp */; };
+		2F70D64C1D946C0A0037528A /* tinyxmlparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F70D6481D946C0A0037528A /* tinyxmlparser.cpp */; };
 		2F8106221D8B5C3200DD7233 /* Mapping.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F8106201D8B5C3200DD7233 /* Mapping.cpp */; };
+		2FA9D3BA1D8F39A500B85F7A /* Commander.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FA9D3B81D8F39A500B85F7A /* Commander.cpp */; };
+		2FA9D3BD1D90A2D200B85F7A /* Drawing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FA9D3BB1D90A2D200B85F7A /* Drawing.cpp */; };
 		2FE888031D89C95F00F3F77A /* ofxBaseGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FE887F21D89C95F00F3F77A /* ofxBaseGui.cpp */; };
 		2FE888041D89C95F00F3F77A /* ofxButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FE887F41D89C95F00F3F77A /* ofxButton.cpp */; };
 		2FE888051D89C95F00F3F77A /* ofxGuiGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2FE887F71D89C95F00F3F77A /* ofxGuiGroup.cpp */; };
@@ -117,8 +124,20 @@
 		293D553B5067FBB8DEFA84D9 /* cap_ios.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = cap_ios.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/highgui/cap_ios.h; sourceTree = SOURCE_ROOT; };
 		2B75A06D9EF1817256BA26F6 /* type_traits_detail.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = type_traits_detail.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/gpu/device/detail/type_traits_detail.hpp; sourceTree = SOURCE_ROOT; };
 		2E411F99E3AB7154484B4F96 /* kmeans_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = kmeans_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/kmeans_index.h; sourceTree = SOURCE_ROOT; };
+		2F70D63D1D9421770037528A /* ofxVideoRecorder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxVideoRecorder.cpp; sourceTree = "<group>"; };
+		2F70D63E1D9421770037528A /* ofxVideoRecorder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxVideoRecorder.h; sourceTree = "<group>"; };
+		2F70D6421D946C0A0037528A /* ofxXmlSettings.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxXmlSettings.cpp; sourceTree = "<group>"; };
+		2F70D6431D946C0A0037528A /* ofxXmlSettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxXmlSettings.h; sourceTree = "<group>"; };
+		2F70D6451D946C0A0037528A /* tinyxml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxml.cpp; sourceTree = "<group>"; };
+		2F70D6461D946C0A0037528A /* tinyxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tinyxml.h; sourceTree = "<group>"; };
+		2F70D6471D946C0A0037528A /* tinyxmlerror.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlerror.cpp; sourceTree = "<group>"; };
+		2F70D6481D946C0A0037528A /* tinyxmlparser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlparser.cpp; sourceTree = "<group>"; };
 		2F8106201D8B5C3200DD7233 /* Mapping.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mapping.cpp; sourceTree = "<group>"; };
 		2F8106211D8B5C3200DD7233 /* Mapping.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Mapping.hpp; sourceTree = "<group>"; };
+		2FA9D3B81D8F39A500B85F7A /* Commander.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commander.cpp; sourceTree = "<group>"; };
+		2FA9D3B91D8F39A500B85F7A /* Commander.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Commander.hpp; sourceTree = "<group>"; };
+		2FA9D3BB1D90A2D200B85F7A /* Drawing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Drawing.cpp; sourceTree = "<group>"; };
+		2FA9D3BC1D90A2D200B85F7A /* Drawing.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Drawing.hpp; sourceTree = "<group>"; };
 		2FE887F21D89C95F00F3F77A /* ofxBaseGui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxBaseGui.cpp; sourceTree = "<group>"; };
 		2FE887F31D89C95F00F3F77A /* ofxBaseGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxBaseGui.h; sourceTree = "<group>"; };
 		2FE887F41D89C95F00F3F77A /* ofxButton.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxButton.cpp; sourceTree = "<group>"; };
@@ -482,6 +501,55 @@
 			name = "libusb-1.0";
 			sourceTree = "<group>";
 		};
+		2F70D63B1D9421770037528A /* ofxVideoRecorder */ = {
+			isa = PBXGroup;
+			children = (
+				2F70D63C1D9421770037528A /* src */,
+			);
+			name = ofxVideoRecorder;
+			sourceTree = "<group>";
+		};
+		2F70D63C1D9421770037528A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2F70D63D1D9421770037528A /* ofxVideoRecorder.cpp */,
+				2F70D63E1D9421770037528A /* ofxVideoRecorder.h */,
+			);
+			name = src;
+			path = ../../../addons/ofxVideoRecorder/src;
+			sourceTree = "<group>";
+		};
+		2F70D6401D946C0A0037528A /* ofxXmlSettings */ = {
+			isa = PBXGroup;
+			children = (
+				2F70D6411D946C0A0037528A /* src */,
+				2F70D6441D946C0A0037528A /* libs */,
+			);
+			name = ofxXmlSettings;
+			sourceTree = "<group>";
+		};
+		2F70D6411D946C0A0037528A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2F70D6421D946C0A0037528A /* ofxXmlSettings.cpp */,
+				2F70D6431D946C0A0037528A /* ofxXmlSettings.h */,
+			);
+			name = src;
+			path = ../../../addons/ofxXmlSettings/src;
+			sourceTree = "<group>";
+		};
+		2F70D6441D946C0A0037528A /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				2F70D6451D946C0A0037528A /* tinyxml.cpp */,
+				2F70D6461D946C0A0037528A /* tinyxml.h */,
+				2F70D6471D946C0A0037528A /* tinyxmlerror.cpp */,
+				2F70D6481D946C0A0037528A /* tinyxmlparser.cpp */,
+			);
+			name = libs;
+			path = ../../../addons/ofxXmlSettings/libs;
+			sourceTree = "<group>";
+		};
 		2FE887F01D89C95F00F3F77A /* ofxGui */ = {
 			isa = PBXGroup;
 			children = (
@@ -836,6 +904,8 @@
 				9683228C705CA3FF4F2EA945 /* ofxKinect */,
 				A0B90D3B0ADB9C1716816714 /* ofxOpenCv */,
 				2FE887F01D89C95F00F3F77A /* ofxGui */,
+				2F70D63B1D9421770037528A /* ofxVideoRecorder */,
+				2F70D6401D946C0A0037528A /* ofxXmlSettings */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -985,6 +1055,10 @@
 				2FE8880E1D89EF2A00F3F77A /* Searching.hpp */,
 				2F8106201D8B5C3200DD7233 /* Mapping.cpp */,
 				2F8106211D8B5C3200DD7233 /* Mapping.hpp */,
+				2FA9D3BB1D90A2D200B85F7A /* Drawing.cpp */,
+				2FA9D3BC1D90A2D200B85F7A /* Drawing.hpp */,
+				2FA9D3B81D8F39A500B85F7A /* Commander.cpp */,
+				2FA9D3B91D8F39A500B85F7A /* Commander.hpp */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1158,6 +1232,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2FE888091D89C95F00F3F77A /* ofxSliderGroup.cpp in Sources */,
+				2F70D64A1D946C0A0037528A /* tinyxml.cpp in Sources */,
 				2FE888061D89C95F00F3F77A /* ofxLabel.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
@@ -1165,10 +1240,13 @@
 				F76B4A79BD8DE4854141CB47 /* fdog.cpp in Sources */,
 				2FE888041D89C95F00F3F77A /* ofxButton.cpp in Sources */,
 				EBCDE831EFAE08274E799C97 /* Calibration.cpp in Sources */,
+				2FA9D3BA1D8F39A500B85F7A /* Commander.cpp in Sources */,
 				2FE8880F1D89EF2A00F3F77A /* Searching.cpp in Sources */,
 				2FE888081D89C95F00F3F77A /* ofxSlider.cpp in Sources */,
+				2F70D64B1D946C0A0037528A /* tinyxmlerror.cpp in Sources */,
 				6AABAB39E82AF5CFEA23A205 /* ContourFinder.cpp in Sources */,
 				45CC483A999BF1065A6B926C /* Distance.cpp in Sources */,
+				2FA9D3BD1D90A2D200B85F7A /* Drawing.cpp in Sources */,
 				5CC34D433F5806179935B89D /* Flow.cpp in Sources */,
 				2023EF517ED2D8B397511D4B /* Helpers.cpp in Sources */,
 				311DF864378748129984EA1D /* Kalman.cpp in Sources */,
@@ -1176,10 +1254,12 @@
 				7CDAD32BE4FA46701E3552C7 /* RunningBackground.cpp in Sources */,
 				2FE888031D89C95F00F3F77A /* ofxBaseGui.cpp in Sources */,
 				10B69DE456AED1288FC9316B /* Tracker.cpp in Sources */,
+				2F70D6491D946C0A0037528A /* ofxXmlSettings.cpp in Sources */,
 				A6668C5B1272D7FCD5B5A16F /* Utilities.cpp in Sources */,
 				DBCB84A37F9AECC254870D79 /* Wrappers.cpp in Sources */,
 				7ADB04AF67C568EAFAEBA546 /* ofxKinectExtras.cpp in Sources */,
 				686B0DF6249B52E1A85B39EC /* ofxKinect.cpp in Sources */,
+				2F70D64C1D946C0A0037528A /* tinyxmlparser.cpp in Sources */,
 				2FE8880A1D89C95F00F3F77A /* ofxToggle.cpp in Sources */,
 				0F8F016776681D468C0D0949 /* audio.c in Sources */,
 				ACE7DC9A3223ED5EE1B80074 /* cameras.c in Sources */,
@@ -1198,6 +1278,7 @@
 				2FE888051D89C95F00F3F77A /* ofxGuiGroup.cpp in Sources */,
 				FB09C6B2A1DA0EA217240CB8 /* ofxCvGrayscaleImage.cpp in Sources */,
 				E212C821D1064B92DD953A42 /* ofxCvHaarFinder.cpp in Sources */,
+				2F70D63F1D9421770037528A /* ofxVideoRecorder.cpp in Sources */,
 				63020F16C7E8DED980111241 /* ofxCvImage.cpp in Sources */,
 				D3301F6A0B43BB293ED97C1D /* ofxCvShortImage.cpp in Sources */,
 			);

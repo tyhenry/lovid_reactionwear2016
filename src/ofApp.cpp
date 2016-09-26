@@ -8,20 +8,50 @@ void ofApp::setup(){
     
     pos = ofVec2f(-1,-1); // off screen
     
-    if (bUseKinect){
-        kinect.setRegistration(true);
-        kinect.init();
-        kinect.open();
-        depthImg.allocate(kinect.width, kinect.height);
-        depthNear.allocate(kinect.width, kinect.height);
-        depthFar.allocate(kinect.width, kinect.height);
-        depthThresh.allocate(kinect.width, kinect.height);
-        
-        roi.set(0,0,kinect.width,kinect.height-180);
-    }
-    
     width = ofGetWidth();
     height = ofGetHeight();
+    
+    // load settings
+    settings.loadFile("settings.xml");
+    threshFar = settings.getValue("threshFar",100);
+    threshNear = settings.getValue("threshNear",230);
+    irWidth = settings.getValue("irWidth",100);
+    irMinDist = settings.getValue("irMinDist",0);
+    irMaxDist = settings.getValue("irMaxDist",100);
+    pyrY = settings.getValue("pyrY",620);
+    pyrWidth = settings.getValue("pyrWidth",1080);
+    
+    // init arduino
+    serial.listDevices();
+    serial.setup(0,115200);
+    commander = Commander(&serial);
+    bCmdConnected = commander.connect();
+    
+    // init kinect
+    kinect.setRegistration(true);
+    kinect.init(true);
+    kinect.open();
+    depthImg.allocate(kinect.width, kinect.height);
+    depthNear.allocate(kinect.width, kinect.height);
+    depthFar.allocate(kinect.width, kinect.height);
+    depthThresh.allocate(kinect.width, kinect.height);
+    
+    roi.set(0,0,kinect.width,kinect.height-180);
+    
+    // record kinect video
+    kinectFbo.allocate(1280,480,GL_RGB);
+    kinectPix.allocate(1280,480,OF_PIXELS_RGB);
+    
+    string filename = "kinect_" +ofGetTimestampString()+ ".mov";
+    
+    vidRecorder.setFfmpegLocation(ofToDataPath("ffmpeg/ffmpeg"));
+    
+    vidRecorder.setVideoCodec("mpeg4");
+    vidRecorder.setVideoBitrate("10000k");
+    
+    vidRecorder.setup(filename, 1280, 480, 30);
+    vidRecorder.start();
+    
     
     // load videos
     
@@ -34,6 +64,7 @@ void ofApp::setup(){
         vid.load(file.path());
         vid.setLoopState(OF_LOOP_NORMAL); // loop
         searchingVids.push_back(vid);
+
     }
     
     // mapping vids
@@ -54,41 +85,104 @@ void ofApp::setup(){
         }
     }
     
+    // drawing vids
+    ofDirectory drawingDir(ofToDataPath("drawing"));
+    drawingDir.allowExt("mp4");
+    drawingDir.listDir();
+    for (auto file : drawingDir.getFiles()){
+        ofVideoPlayer vid;
+        vid.load(file.path());
+        vid.setLoopState(OF_LOOP_NORMAL); // loop
+        drawingVids.push_back(vid);
+    }
+    
     // stages
     searching = Searching(width, height, height*0.5-100, searchingVids);
         // width, height, max radius, vids
-    mapping = Mapping(width, height, 20, width/5, 100, width-100, mappingVids);
+    mapping = Mapping(width, height, 20, width/5, 100, width-200, mappingVids);
         // width, height, min vid width, max vid width, pyramid y, pyramid width, vids
+    drawing = Drawing(width, height, 100, drawingVids);
+        // width, height, vid width, vids
+    
+    // gui
+    gui.setup();
+    gui.add(threshFar.set("kinect thresh far", threshFar, 0, 255));
+    gui.add(threshNear.set("kinect thresh near", threshNear, 0, 255));
+    gui.add(irWidth.set("IR beam width", irWidth, 0, 100));
+    gui.add(irMinDist.set("IR min dist", irMinDist, 0, 100));
+    gui.add(irMaxDist.set("IR max dist", irMaxDist, 0, 100));
+    gui.add(pyrY.set("pyramid peak", pyrY, 0, 720));
+    gui.add(pyrWidth.set("pyramid width", pyrWidth, 0, 1280));
+    gui.add(bUseMouse.set("use mouse?", false));
+    gui.add(bDrawKinect.set("draw kinect?", false));
+    gui.add(bDrawPos.set("draw pos dot?", true));
+    gui.add(bMapIRBounds.set("use IR bounds?", true));
+    gui.add(bDrawIRBounds.set("draw IR bounds?", false));
+    gui.add(bDrawPyramid.set("draw pyramid?", false));
+    
+    
+    
+    // start
+    
+    searching.start();
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     
-    if (bUseKinect) updateKinect();
+    // get kinect pos
+    updateKinect();
     
+    if (bUseMouse){ // override kinect pos
+        pos.x = ofGetMouseX();
+        pos.y = ofGetMouseY();
+    }
+    
+    if (bMapIRBounds){
+        
+        float irW = ofMap(irWidth,0,100,0,width);
+        float irMinH = ofMap(irMinDist,0,100,height,0);
+        float irMaxH = ofMap(irMaxDist,0,100,height,0);
+        float irX = width*0.5-irW*0.5;
+        float irY = irMaxH;
+        float irH = irMinH-irMaxH;
+        
+        pos.x = ofMap(pos.x, irX,irX+irW, 0,width, true);
+        pos.y = ofMap(pos.y, irY,irY+irH, 0,height, true);
+        
+    }
+    
+    // arduino comm
+    if (bCmdConnected) {
+        commander.update();
+        char cmd = 'x'; unsigned long val = 0;
+        while (commander.getNext(&cmd, &val)){} // get latest in serial queue and clear everything
+        if (cmd == 'I') {
+            if (val == 62500){
+                IRbreak();
+            } else {
+                IRsignal();
+                
+            }
+        }
+    }
+    
+    // stages
     switch (stage) {
         case SearchingStage:{
             
-            if (searching.update(pos,bHasIR)) {
-                mapping.start(searchingVids);
-                stage++;
-            }
-            
-            
+            if (searching.update(pos,bHasIR)) nextStage();
             break;
         }
         case MappingStage:{
             
-            if (mapping.update(pos,bHasIR)) stage++;
-
+            if (mapping.update(pos,bHasIR)) nextStage();
             break;
         }
         case DrawingStage:{
-
-            break;
-        }
-        case TransitionStage:{
-
+            
+            drawing.update(pos,bHasIR);
             break;
         }
         case SynthStage:{
@@ -113,7 +207,7 @@ void ofApp::draw(){
         case MappingStage:{
             
             mapping.draw();
-            if (bDrawMiniPyramid) {
+            if (bDrawPyramid) {
                 float mW = width/5;
                 float mH = mW/width*height;
                 mapping.drawMiniPyramid(width-mW-20,20,mW,mH);
@@ -122,20 +216,20 @@ void ofApp::draw(){
             break;
         }
         case DrawingStage:{
+            ofTexture* kTexPtr = nullptr;
+            if (kinect.isConnected()) kTexPtr = &kinect.getTexture();
+            drawing.draw(0,0,width,height,kTexPtr);
             
             break;
         }
-        case TransitionStage:{
-            
-            break;
-        }
+
         case SynthStage:{
             
             break;
         }
     }
     
-    if (bUseKinect && bDrawKinect){
+    if (bDrawKinect){
         ofPushMatrix();
         ofPushStyle();
         ofScale(0.4,0.4);
@@ -166,6 +260,21 @@ void ofApp::draw(){
         ofPopMatrix();
         
     }
+    
+    if (bDrawIRBounds){
+        ofPushStyle();
+        ofSetColor(255,0,0);
+        ofNoFill();
+        float irW = ofMap(irWidth,0,100,0,width);
+        float irMinH = ofMap(irMinDist,0,100,height,0);
+        float irMaxH = ofMap(irMaxDist,0,100,height,0);
+        float irX = width*0.5-irW*0.5;
+        float irY = irMaxH;
+        float irH = irMinH-irMaxH;
+        ofDrawRectangle(irX,irY,irW,irH);
+        ofPopStyle();
+    }
+    
     if (bDrawPos){
         int hue = bHasIR ? 255 : 180;
         ofSetColor(ofColor().fromHsb(hue,255,255));
@@ -173,13 +282,33 @@ void ofApp::draw(){
         ofDrawCircle(pos,rad);
         ofSetColor(255);
     }
+    
+    if (bDrawGui){
+        gui.draw();
+    }
 
+}
+
+void ofApp::exit(){
+    if (vidRecorder.isRecording()) vidRecorder.close();
+    kinect.close();
 }
 
 //--------------------------------------------------------------
 void ofApp::updateKinect(){
     kinect.update();
     if (kinect.isFrameNew()){
+        
+        // kinect recorder
+        kinectFbo.begin();
+        ofClear(0);
+        kinect.draw(0,0,640,480);
+        kinect.drawDepth(640,0,640,480);
+        kinectFbo.end();
+        kinectFbo.readToPixels(kinectPix);
+        
+        bool success = vidRecorder.addFrame(kinectPix);
+        if (!success) cout << "failed to add vid frame to kinect recording" << endl;
         
         // get kinect depth img
         depthImg.setFromPixels(kinect.getDepthPixels());
@@ -233,13 +362,57 @@ void ofApp::IRbreak(){
 
 //--------------------------------------------------------------
 void ofApp::nextStage(){
-    if (stage < SynthStage) stage++;
+    switch (stage){
+        case SearchingStage:{
+            searching.end();
+            mapping.start();
+            stage++;
+            break;
+        }
+        case MappingStage:{
+            mapping.end();
+            drawing.start();
+            stage++;
+            break;
+        }
+        default:{
+            break;
+        }
+    }
     ofLogNotice("nextStage") << "stage: " << stage;
 }
+
 //--------------------------------------------------------------
 void ofApp::prevStage(){
-    if (stage > SearchingStage) stage--;
+    switch (stage){
+        case MappingStage:{
+            mapping.end();
+            searching.start();
+            stage--;
+            break;
+        }
+        case DrawingStage:{
+            drawing.end();
+            mapping.start();
+            stage--;
+            break;
+        }
+        default:{
+            break;
+        }
+    }
     ofLogNotice("prevStage") << "stage: " << stage;
+}
+
+void ofApp::saveSettings(){
+    settings.setValue("threshFar",threshFar);
+    settings.setValue("threshNear",threshNear);
+    settings.setValue("irWidth",irWidth);
+    settings.setValue("irMinDist",irMinDist);
+    settings.setValue("irMaxDist",irMaxDist);
+    settings.setValue("pyrY",pyrY);
+    settings.setValue("pyrWidth",pyrWidth);
+    settings.saveFile("settings.xml");
 }
 
 //--------------------------------------------------------------
@@ -274,10 +447,10 @@ void ofApp::keyReleased(int key){
     }
     
     // use kinect
-    else if (key == 'k'){
-        bUseKinect = !bUseKinect;
-        string k = bUseKinect ? "ON" : "OFF";
-        ofLogNotice("keyReleased") << "using kinect: " << k;
+    else if (key == 'm' || key == 'M'){
+        bUseMouse = !bUseMouse;
+        string m = bUseMouse ? "ON" : "OFF";
+        ofLogNotice("keyReleased") << "using mouse pos: " << m;
     }
     // draw kinect
     else if (key == 'd' || key == 'D'){
@@ -302,18 +475,26 @@ void ofApp::keyReleased(int key){
     
     // draw mini pyramid
     else if (key == 'y' || key == 'Y'){
-        bDrawMiniPyramid = !bDrawMiniPyramid;
-        string p = bDrawMiniPyramid ? "ON" : "OFF";
+        bDrawPyramid = !bDrawPyramid;
+        string p = bDrawPyramid ? "ON" : "OFF";
         ofLogNotice("keyReleased") << "drawing mini pyramid: " << p;
+    }
+    
+    else if (key == 'g' || key == 'G'){
+        bDrawGui = !bDrawGui;
+        string g = bDrawGui ? "ON" : "OFF";
+        ofLogNotice("keyReleased") << "drawing gui: " << g;
+    }
+    
+    else if (key == 's' || key == 'S'){
+        saveSettings();
     }
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-    if (!bUseKinect){
-        pos.set(x,y);
-    }
+void ofApp::mouseMoved(int x, int y){
+
 }
 
 //--------------------------------------------------------------

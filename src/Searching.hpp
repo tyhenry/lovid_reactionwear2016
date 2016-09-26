@@ -25,6 +25,9 @@ public:
     void draw(float x, float y, float w, float h);
     void draw(){ draw(0,0,_w,_h); }
     
+    void start();
+    void end();
+    
     int nextBubble();
     
 protected:
