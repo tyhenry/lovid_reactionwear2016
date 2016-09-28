@@ -10,6 +10,7 @@
 #include "Searching.hpp"
 #include "Mapping.hpp"
 #include "Drawing.hpp"
+#include "ofxDeckLink.h"
 
 class ofApp : public ofBaseApp{
 
@@ -88,6 +89,11 @@ public:
     ofxVideoRecorder vidRecorder;
     ofFbo kinectFbo;
     ofPixels kinectPix;
+    
+    // black magic input
+    ofxDeckLinkAPI::Input synth;
+    ofFbo synthFbo;
+    bool bHasSynth = false;
     
     // gui
     ofxPanel gui;

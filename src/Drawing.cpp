@@ -21,9 +21,17 @@ _w(ofWidth), _h(ofHeight), _vidW(vidWidth)
     _mask.load("","shaders/circleMask.frag");
     _maskFbo.allocate(640,480,GL_RGBA);
     _vidFbo.allocate(640,480,GL_RGBA);
+    
+    // synth mask setup
+    _synthMask.allocate(_w,_h,GL_RGBA);
+    _synthMask.begin();
+    ofClear(0);
+    _synthMask.end();
 }
 
-void Drawing::update(ofVec2f pos, bool hasIR){
+bool Drawing::update(ofVec2f pos, bool hasIR){
+    
+    if (_bDone) return true;
     
     // check for new path or continued path
     
@@ -131,7 +139,7 @@ void Drawing::update(ofVec2f pos, bool hasIR){
 
 }
 
-void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
+void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTexture* synthPtr){
     
     //bg
     ofPushStyle();
@@ -151,6 +159,11 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
         ofDrawRectangle(x,y,w,h);
     }
     ofPopStyle();
+    
+    // synth
+    if (synthPtr!=nullptr){
+        synthPtr->draw(0,0,640,480);
+    }
     
     // draw vid paths
     for (auto& vidPath : _vidPaths){
@@ -178,14 +191,12 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
             
             float vidH = _vidW/vidPath.vid->getWidth()*vidPath.vid->getHeight();
             _maskFbo.draw(*it-ofVec2f(_vidW*0.5,_vidW*0.5),_vidW,_vidW);
-            
-            //vidPath.vid->draw(*it-ofVec2f(_vidW*0.5,vidH*0.5),_vidW,vidH);
         }
     }
 }
 
 void Drawing::start(){
-    
+    _bAddSynth = false;
 }
 
 void Drawing::end(){

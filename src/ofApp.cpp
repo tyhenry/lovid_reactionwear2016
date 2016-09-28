@@ -3,7 +3,9 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     
+    ofSetVerticalSync(true);
     ofSetFrameRate(60);
+    
     ofBackground(0);
     
     pos = ofVec2f(-1,-1); // off screen
@@ -52,6 +54,16 @@ void ofApp::setup(){
     vidRecorder.setup(filename, 1280, 480, 30);
     vidRecorder.start();
     
+    
+    // black magic input
+    if (synth.setup(0)){
+        synth.start(bmdModeNTSC);
+        bHasSynth = true;
+        ofLogNotice("setup") << "blackmagic synth input initialized";
+    } else {
+        ofLogError("setup") << "couldn't load blackmagic synth input!!!";
+    }
+    synthFbo.allocate(width,height,GL_RGBA);
     
     // load videos
     
@@ -182,11 +194,13 @@ void ofApp::update(){
         }
         case DrawingStage:{
             
-            drawing.update(pos,bHasIR);
+            synth.update(); // update synth
+            if (drawing.update(pos,bHasIR)) nextStage();
             break;
         }
         case SynthStage:{
-
+            
+            synth.update(); // update synth
             break;
         }
     }
@@ -216,6 +230,7 @@ void ofApp::draw(){
             break;
         }
         case DrawingStage:{
+            // kinect
             ofTexture* kTexPtr = nullptr;
             if (kinect.isConnected()) {
                 irFbo.begin();
@@ -224,12 +239,20 @@ void ofApp::draw(){
                 irFbo.end();
                 kTexPtr = &irFbo.getTexture();
             }
-            drawing.draw(0,0,width,height,kTexPtr);
+            // synth
+            ofTexture* sTexPtr = nullptr;
+            if (bHasSynth){
+                synthFbo.begin();
+                synth.draw(0,0,width,height);
+                synthFbo.end();
+                sTexPtr = &synthFbo.getTexture();
+            }
+            drawing.draw(0,0,width,height,kTexPtr,sTexPtr);
             break;
         }
 
         case SynthStage:{
-            
+            synth.draw(0,0,width,height);
             break;
         }
     }
@@ -380,7 +403,9 @@ void ofApp::nextStage(){
             stage++;
             break;
         }
-        default:{
+        case DrawingStage:{
+            drawing.end();
+            stage++;
             break;
         }
     }
@@ -402,8 +427,9 @@ void ofApp::prevStage(){
             stage--;
             break;
         }
-        default:{
-            break;
+        case SynthStage:{
+            drawing.start();
+            stage--;
         }
     }
     ofLogNotice("prevStage") << "stage: " << stage;

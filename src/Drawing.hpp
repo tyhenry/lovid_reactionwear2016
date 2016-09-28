@@ -24,8 +24,8 @@ public:
     Drawing() {}
     Drawing(float ofWidth, float ofHeight, float vidWidth, vector<ofVideoPlayer>& vids);
     
-    void update(ofVec2f pos, bool hasIR);
-    void draw(float x, float y, float w, float h, ofTexture* bgPtr=nullptr);
+    bool update(ofVec2f pos, bool hasIR);
+    void draw(float x, float y, float w, float h, ofTexture* bgPtr=nullptr, ofTexture* synthPtr=nullptr);
     
     void start();
     void end();
@@ -35,12 +35,18 @@ protected:
     bool _bHasIR = false;
     vector<ofVideoPlayer*> _vids;
     vector<VidPath> _vidPaths;
+    VidPath _synthPath;
+    bool _bAddSynth =false;
     float _lastBgHue = 220;
     float _delThresh = 0.3; // 0.6 second before delete point
     float _lastIR = 0.0; // time of last IR signal
     float _IRTimeout = 1.5; // wait until IR signal drop
     
+    bool _bDone = false;
+    
     ofShader _mask;
     ofFbo _vidFbo;
     ofFbo _maskFbo;
+    
+    ofFbo _synthMask;
 };
