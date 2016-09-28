@@ -15,7 +15,7 @@ Mapping::Mapping(float ofWidth, float ofHeight,
 {
     
     bgVid = &vids[0];
-    bgVid->setVolume(0);
+    bgVid->setVolume(1);
     for (int i=1; i<vids.size(); i++){
         vids[i].stop();
         vids[i].setVolume(0);
@@ -61,9 +61,13 @@ Mapping::Mapping(float ofWidth, float ofHeight,
 
 void Mapping::start(){
     bgVid->play();
+    for (auto vid : _vids){
+        vid->play();
+    }
 }
 
 void Mapping::end(){
+    bgVid->stop();
     for (auto vid : _vids){
         vid->stop();
     }
@@ -79,7 +83,7 @@ void Mapping::end(){
 
 bool Mapping::update(ofVec2f pos, bool hasIR){
     
-    if (/*!_bHasIR && */hasIR){ // IR signal, add vid at pos
+    if (hasIR){ // IR signal, add vid at pos
         
         // calc position/size of possible video
         
@@ -114,7 +118,14 @@ bool Mapping::update(ofVec2f pos, bool hasIR){
             int idx = (int)ofRandom(1,_vids.size()); // random video
             if (idx >= _vids.size()) idx = _vids.size()-1; // rare edge case
             vid = _vids[idx];
-            vid->play();
+
+            // switch sound
+            vid->setVolume(1);
+            // turn off other vids' sounds
+            bgVid->setVolume(0);
+            for (int i=0; i<_vids.size(); i++){
+                if (i != idx) _vids[i]->setVolume(0);
+            }
             
             // add to pyramid
             PyrVid pyrVid;

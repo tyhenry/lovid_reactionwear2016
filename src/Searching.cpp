@@ -13,7 +13,7 @@ Searching::Searching(float ofWidth, float ofHeight, float radiusPublic, vector<o
 {
     
     // load vids from vids vector
-    for (int i=0; i<=Full; i++){
+    for (int i=Full; i>=0; i--){
         _vids.push_back(&(vids[i]));
     }
     screen.allocate(_w,_h, GL_RGBA);

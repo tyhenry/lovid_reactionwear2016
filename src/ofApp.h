@@ -82,6 +82,7 @@ public:
     int blobIndex = -1;
     ofVec2f centroid;
     ofRectangle roi;
+    ofFbo irFbo;
     
     // kinect recorder
     ofxVideoRecorder vidRecorder;

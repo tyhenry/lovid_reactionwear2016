@@ -57,6 +57,9 @@ void Drawing::update(ofVec2f pos, bool hasIR){
         path.path.addVertex(pos);
         path.delTime = ofGetElapsedTimef()+1.5;
         
+        // mask wobble offset
+        path.maskOffset = ofRandom(100);
+        
     } else if (continuePath) { // continued signal, continue current vid path
         
         if (_vidPaths.size() > 0){
@@ -94,8 +97,17 @@ void Drawing::update(ofVec2f pos, bool hasIR){
             }
 
         }
-        
-
+    }
+    
+    // adjust sound
+    // 1 -- mute all
+    for (auto vid : _vids){
+        vid->setVolume(0);
+    }
+    // 2 -- turn on sound for playing vids
+    for (auto& vidPath : _vidPaths){
+        if (vidPath.dead) continue; // skip dead worms
+        vidPath.vid->setVolume(1);
     }
     
     // update videos
@@ -109,21 +121,24 @@ void Drawing::update(ofVec2f pos, bool hasIR){
 
 void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
     
-    if (_bHasIR){
-        //bg
+    //bg
+    ofPushStyle();
+    if (_bHasIR){ // colorize
         float hue = ofRandom(150,240);
         hue = (_lastBgHue + hue) * 0.5;
-        ofPushStyle();
-        ofSetColor(ofColor::fromHsb(hue,255,220));
-        if (bgPtr != nullptr){
-            bgPtr->draw(x,y,w,h);
-        }
-        else ofDrawRectangle(x,y,w,h);
-        ofPopStyle();
+        ofSetColor(ofColor::fromHsb(hue,255,255));
     }
     
+    if (bgPtr != nullptr){ // draw kinect
+        bgPtr->draw(x,y,w,h);
+        cout << "drawing bg ptr" << endl;
+    }
+    else { // or draw solid color
+        ofDrawRectangle(x,y,w,h);
+    }
+    ofPopStyle();
+    
     // draw vid paths
-    int i=0;
     for (auto& vidPath : _vidPaths){
         if (vidPath.dead) continue; // skip dead worms
         
@@ -134,14 +149,13 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
         
         _mask.begin();
         _mask.setUniform2f("u_resolution", 640, 480);
-        _mask.setUniform1f("u_time", ofGetElapsedTimef()+i);
+        _mask.setUniform1f("u_time", ofGetElapsedTimef()+vidPath.maskOffset);
         _mask.setUniformTexture("u_tex0", _vidFbo.getTexture(), 1);
         _maskFbo.begin();
         ofClear(0);
         ofDrawRectangle(0,0,640,480);
         _maskFbo.end();
         _mask.end();
-        i++;
     
         
         // loop through polyline points

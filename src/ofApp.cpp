@@ -35,8 +35,8 @@ void ofApp::setup(){
     depthNear.allocate(kinect.width, kinect.height);
     depthFar.allocate(kinect.width, kinect.height);
     depthThresh.allocate(kinect.width, kinect.height);
-    
     roi.set(0,0,kinect.width,kinect.height-180);
+    irFbo.allocate(640,480,GL_RGBA);
     
     // record kinect video
     kinectFbo.allocate(1280,480,GL_RGB);
@@ -217,9 +217,14 @@ void ofApp::draw(){
         }
         case DrawingStage:{
             ofTexture* kTexPtr = nullptr;
-            if (kinect.isConnected()) kTexPtr = &kinect.getTexture();
+            if (kinect.isConnected()) {
+                irFbo.begin();
+                ofClear(0);
+                kinect.draw(0,0,640,480);
+                irFbo.end();
+                kTexPtr = &irFbo.getTexture();
+            }
             drawing.draw(0,0,width,height,kTexPtr);
-            
             break;
         }
 

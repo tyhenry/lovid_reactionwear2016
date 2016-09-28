@@ -17,6 +17,7 @@ protected:
         ofPolyline path;
         float delTime = 0;
         bool dead = false;
+        float maskOffset = 0;
     };
 
 public:
