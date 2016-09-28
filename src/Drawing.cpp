@@ -17,9 +17,10 @@ _w(ofWidth), _h(ofHeight), _vidW(vidWidth)
         _vids.push_back(&vid);
     }
     
-    // invert shader setup
-    //_mask.load("","shaders/circleMask.frag");
-    //_maskFbo.allocate(_w,_h,GL_RGBA);
+    // mask shader setup
+    _mask.load("","shaders/circleMask.frag");
+    _maskFbo.allocate(640,480,GL_RGBA);
+    _vidFbo.allocate(640,480,GL_RGBA);
 }
 
 void Drawing::update(ofVec2f pos, bool hasIR){
@@ -122,28 +123,35 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
     }
     
     // draw vid paths
+    int i=0;
     for (auto& vidPath : _vidPaths){
         if (vidPath.dead) continue; // skip dead worms
         
+        _vidFbo.begin();
+        ofClear(0);
+        vidPath.vid->draw(0,0,640,480);
+        _vidFbo.end();
+        
+        _mask.begin();
+        _mask.setUniform2f("u_resolution", 640, 480);
+        _mask.setUniform1f("u_time", ofGetElapsedTimef()+i);
+        _mask.setUniformTexture("u_tex0", _vidFbo.getTexture(), 1);
+        _maskFbo.begin();
+        ofClear(0);
+        ofDrawRectangle(0,0,640,480);
+        _maskFbo.end();
+        _mask.end();
+        i++;
+    
+        
         // loop through polyline points
         for (auto it=vidPath.path.begin(); it!=vidPath.path.end(); ++it){
-            
-//            _maskFbo.begin();
-//            vidPath.vid->draw(0,0,_w,_h);
-//            _maskFbo.end();
+        
             
             float vidH = _vidW/vidPath.vid->getWidth()*vidPath.vid->getHeight();
-//
-//            _mask.begin();
-//            _mask.setUniform2f("u_resolution", _w, _h);
-//            _mask.setUniform1f("u_time", ofGetElapsedTimef());
-//            _mask.setUniformTexture("u_tex0", _maskFbo.getTexture(), 4);
-//            
-//            ofDrawRectangle(*it-ofVec2f(_vidW*0.5,vidH*0.5),_vidW,vidH);
-//            _mask.end();
+            _maskFbo.draw(*it-ofVec2f(_vidW*0.5,_vidW*0.5),_vidW,_vidW);
             
-//            _maskFbo.draw(*it-ofVec2f(_vidW*0.5,vidH*0.5),_vidW,vidH);
-            vidPath.vid->draw(*it-ofVec2f(_vidW*0.5,vidH*0.5),_vidW,vidH);
+            //vidPath.vid->draw(*it-ofVec2f(_vidW*0.5,vidH*0.5),_vidW,vidH);
         }
     }
 }

@@ -40,5 +40,6 @@ protected:
     float _IRTimeout = 1.5; // wait until IR signal drop
     
     ofShader _mask;
+    ofFbo _vidFbo;
     ofFbo _maskFbo;
 };
