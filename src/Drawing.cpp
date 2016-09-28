@@ -64,38 +64,50 @@ void Drawing::update(ofVec2f pos, bool hasIR){
         
         if (_vidPaths.size() > 0){
             auto& vidPath = _vidPaths.back();
-            if (!vidPath.dead) vidPath.path.addVertex(pos);
+
+            if (!vidPath.dead) {
+                // try adding point, if distance is far enough
+                ofVec2f lastPt = vidPath.path.getVertices().back();
+                float dist = lastPt.distance(pos);
+                if (dist > 3) vidPath.path.addVertex(pos);
+                else ofLogNotice("vidPaths") << "didn't add point to path, dist = " << dist;
+            }
         }
     }
     
-    // update vid paths' ages (and shrink if old)
-    for (auto& vidPath : _vidPaths){
+    // shrink vidPaths
+    for (int i=0; i<_vidPaths.size(); i++){
         
-        if (vidPath.dead) continue; // skip dead worms
+        VidPath& vidPath = _vidPaths[i];
         
-        if (ofGetElapsedTimef() - vidPath.delTime > _delThresh){
-            
-            // delete a point
-            
-            // -- save pts
-            deque<ofPoint> pts;
-            for (auto it=vidPath.path.begin(); it!=vidPath.path.end(); ++it){
-                ofPoint pt = *it;
-                pts.push_back(pt);
-            }
-            // -- clear polyline
-            vidPath.path.clear();
-            if (pts.size() > 0) pts.pop_front(); // delete 1 point
-            
-            // -- add points back to polyline, unless empty
-            if (pts.size() == 0) vidPath.dead = true;
-            else {
-                for (auto& pt : pts){
-                    vidPath.path.addVertex(pt);
+        if (!vidPath.dead){ // skip dead worms
+        
+            if (ofGetElapsedTimef() - vidPath.delTime > _delThresh){
+                
+                // delete a point
+                
+                // -- save pts
+                deque<ofPoint> pts;
+                for (auto it=vidPath.path.begin(); it!=vidPath.path.end(); ++it){
+                    ofPoint pt = *it;
+                    pts.push_back(pt);
                 }
+                // -- clear polyline
+                vidPath.path.clear();
+                if (pts.size() > 0) pts.pop_front(); // delete 1 point
                 vidPath.delTime = ofGetElapsedTimef();
+                ofLogNotice("vidPaths") << "vidPath " << i << " deleted pt, delTime = " << vidPath.delTime << ", num pts: " << pts.size();
+                
+                // -- add points back to polyline, unless empty
+                if (pts.size() == 0) {
+                    vidPath.dead = true;
+                    ofLogNotice("vidPaths") << "vidPath " << i << " is dead";
+                } else {
+                    for (auto& pt : pts){
+                        vidPath.path.addVertex(pt);
+                    }
+                }
             }
-
         }
     }
     
@@ -127,6 +139,8 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr){
         float hue = ofRandom(150,240);
         hue = (_lastBgHue + hue) * 0.5;
         ofSetColor(ofColor::fromHsb(hue,255,255));
+    } else {
+        ofSetColor(0);
     }
     
     if (bgPtr != nullptr){ // draw kinect

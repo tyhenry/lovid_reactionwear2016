@@ -42,7 +42,7 @@ Mapping::Mapping(float ofWidth, float ofHeight,
     ofClear(0);
     ofPushStyle();
     ofFill();
-    ofDrawTriangle(_w*0.5,_pyrY,_w*0.5-_pyrW*0.5,_h,_w*0.5+_pyrW*0.5,_h);
+    ofDrawTriangle(_w*0.5,_h,_w*0.5-_pyrW*0.5,_pyrY,_w*0.5+_pyrW*0.5,_pyrY);
     ofPopStyle();
     pyr.end();
     ofTexture pyrTex = pyr.getTexture();
@@ -88,9 +88,9 @@ bool Mapping::update(ofVec2f pos, bool hasIR){
         // calc position/size of possible video
         
         pos.y = ofMap(pos.y,0,_h,_pyrY,_h,true); // map y to pyramid height
-        float xRange = ofMap(pos.y, _pyrY,_h, 0,_pyrW,true); // get x range per y
-        pos.x = ofMap(pos.x,0,_w,_w*0.5-xRange*0.5,_w*0.5+xRange*0.5,true); // map x to x range
-        float vidW = ofMap(pos.y, _pyrY, _h, _minVW, _maxVW); // get vid width per y
+        float xRange = ofMap(pos.y, _pyrY,_h, _pyrW,0, true); // get x range per y
+        pos.x = ofMap(pos.x, 0,_w, _w*0.5-xRange*0.5,_w*0.5+xRange*0.5, true); // map x to x range
+        float vidW = ofMap(pos.y, _pyrY, _h, _maxVW, _minVW); // get vid width per y
         float vidH = vidW/1.77778; /*vid->getWidth()*vid->getHeight();*/ // calc vid height per vid width
         ofRectangle vidRect(pos-ofVec2f(vidW*0.5,vidH*0.5),vidW,vidH); // center vid on pos
         
