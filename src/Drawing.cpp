@@ -22,6 +22,9 @@ _w(ofWidth), _h(ofHeight), _vidW(vidWidth)
     _maskFbo.allocate(640,480,GL_RGBA);
     _vidFbo.allocate(640,480,GL_RGBA);
     
+    // synth mask shader
+    _alphaMask.load("","shaders/alphaMask.frag");
+    
 }
 
 bool Drawing::update(ofVec2f pos, bool hasIR){
@@ -41,7 +44,7 @@ bool Drawing::update(ofVec2f pos, bool hasIR){
             ofLogNotice("synthPath") << "perimeter = " << l;
         }
         
-        _synthFbo.begin();
+        _synthMask.begin();
         ofPushStyle();
         
         // draw bg
@@ -64,10 +67,7 @@ bool Drawing::update(ofVec2f pos, bool hasIR){
         }
         
         ofPopStyle();
-        
-        _synthFbo.end();
-        ofTexture synthMaskTex = _synthFbo.getTexture();
-        _synthMask = synthMaskTex;
+        _synthMask.end();
         
         if (synthExpandTime > _synthExpandWait) {
             return true;
@@ -180,6 +180,7 @@ bool Drawing::update(ofVec2f pos, bool hasIR){
     }
     
     _bHasIR = hasIR;
+    if (_bSynthStart) _bHasIR = true;
     return false;
 }
 
@@ -237,7 +238,6 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
     // synth
     if (_bSynthStart){
         _synthDraw.begin();
-        ofClear(0);
         if (synthPtr!=nullptr){
             synthPtr->draw(0,0,_w,_h);
         } else {
@@ -247,7 +247,13 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
             ofPopStyle();
         }
         _synthDraw.end();
-        _synthDraw.draw(0,0,_w,_h);
+        
+        _alphaMask.begin();
+        _alphaMask.setUniformTexture("u_tex0", _synthDraw.getTexture(), 0);
+        _alphaMask.setUniformTexture("u_tex1", _synthMask.getTexture(), 1);
+        _alphaMask.setUniform2f("u_resolution", _w,_h);
+        ofDrawRectangle(0,0,_w,_h);
+        _alphaMask.end();
     }
     
 
@@ -259,17 +265,15 @@ void Drawing::start(){
     _bSynthStart = false;
 
     // synth mask setup
-    _synthFbo.allocate(_w,_h,GL_RGBA);
-    _synthFbo.begin();
+    _synthMask.allocate(_w,_h,GL_RGBA);
+    _synthMask.begin();
     ofPushStyle();
     ofSetColor(0);
     ofDrawRectangle(0,0,_w,_h);
     ofPopStyle();
-    _synthFbo.end();
-    ofTexture synthMaskTex = _synthFbo.getTexture();
-    _synthMask = synthMaskTex;
+    _synthMask.end();
+
     _synthDraw.allocate(_w,_h,GL_RGBA);
-    _synthDraw.getTexture().setAlphaMask(_synthMask);
 
 }
 

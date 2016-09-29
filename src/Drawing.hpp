@@ -35,7 +35,7 @@ protected:
     bool _bHasIR = false;
     vector<ofVideoPlayer*> _vids;
     vector<VidPath> _vidPaths;
-    int _maxVidPaths = 10;
+    int _maxVidPaths = 1;
     
     ofPolyline _synthPath;
     bool _bSynthStart = false;
@@ -51,7 +51,7 @@ protected:
     ofFbo _vidFbo;
     ofFbo _maskFbo;
     
-    ofFbo _synthFbo;
-    ofTexture _synthMask;
-    ofFbo _synthDraw;
+    ofFbo _synthMask; // mask
+    ofFbo _synthDraw; // synth (to be masked)
+    ofShader _alphaMask;
 };
