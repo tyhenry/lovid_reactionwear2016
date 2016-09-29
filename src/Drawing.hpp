@@ -35,18 +35,23 @@ protected:
     bool _bHasIR = false;
     vector<ofVideoPlayer*> _vids;
     vector<VidPath> _vidPaths;
-    VidPath _synthPath;
-    bool _bAddSynth =false;
+    int _maxVidPaths = 3;
+    
+    ofPolyline _synthPath;
+    bool _bSynthStart = false;
+    float _synthExpandStart = 0;
+    float _synthExpandWait = 4.0; // 4 seconds
+
     float _lastBgHue = 220;
     float _delThresh = 0.3; // 0.6 second before delete point
     float _lastIR = 0.0; // time of last IR signal
     float _IRTimeout = 1.5; // wait until IR signal drop
     
-    bool _bDone = false;
-    
     ofShader _mask;
     ofFbo _vidFbo;
     ofFbo _maskFbo;
     
-    ofFbo _synthMask;
+    ofFbo _synthFbo;
+    ofTexture _synthMask;
+    ofFbo _synthDraw;
 };

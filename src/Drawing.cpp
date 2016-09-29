@@ -22,63 +22,108 @@ _w(ofWidth), _h(ofHeight), _vidW(vidWidth)
     _maskFbo.allocate(640,480,GL_RGBA);
     _vidFbo.allocate(640,480,GL_RGBA);
     
-    // synth mask setup
-    _synthMask.allocate(_w,_h,GL_RGBA);
-    _synthMask.begin();
-    ofClear(0);
-    _synthMask.end();
 }
 
 bool Drawing::update(ofVec2f pos, bool hasIR){
     
-    if (_bDone) return true;
-    
-    // check for new path or continued path
-    
-    bool newPath = false;
-    bool continuePath = false;
-    
-    if (ofGetElapsedTimef() - _lastIR < _IRTimeout){ // continue path
-        continuePath = true;
-        if (hasIR) _lastIR = ofGetElapsedTimef();
+    if (_bSynthStart) {
+        float synthExpandTime = 0;
+        
+        // synth path going, add pos to synth path
+        _synthPath.addVertex(pos);
+        
+        // check path length, start bg expansion if long enough
+        float l = _synthPath.getPerimeter();
+        if (l > 4000 && _synthExpandStart == 0) {
+            _synthExpandStart = ofGetElapsedTimef(); // start expansion
+            ofLogNotice("synthPath") << "starting synth expansion";
+        } else {
+            ofLogNotice("synthPath") << "perimeter = " << l;
+        }
+        
+        _synthFbo.begin();
+        ofPushStyle();
+        
+        // draw bg
+        if (_synthExpandStart==0){
+            ofSetColor(0);
+        } else {
+            synthExpandTime = ofGetElapsedTimef()-_synthExpandStart;
+            
+            float brt = ofMap(synthExpandTime, 0,_synthExpandWait, 0,255, true);
+            ofSetColor(brt);
+        }
+        ofDrawRectangle(0,0,_w,_h);
+        
+        // draw synth path circles
+        auto& p = _synthPath.getVertices();
+        ofSetColor(255);
+        for (int i=0; i<p.size(); i++){
+            float r = _vidW/1.7778 * ofRandom(0.95,1.05);
+            ofDrawCircle(p[i], r);
+        }
+        
+        ofPopStyle();
+        
+        _synthFbo.end();
+        ofTexture synthMaskTex = _synthFbo.getTexture();
+        _synthMask = synthMaskTex;
+        
+        if (synthExpandTime > _synthExpandWait) {
+            return true;
+        }
     }
-    else if (hasIR){ // new path
-        newPath = true;
-        _lastIR = ofGetElapsedTimef();
-    }
     
-    // create/continue vidPath
-    
-    if (newPath){ // new ir signal, new path
+    else {
+        // check for new path or continued path
         
-        // create vid path
-        _vidPaths.push_back(VidPath());
-        VidPath& path = _vidPaths.back();
+        bool newPath = false;
+        bool continuePath = false;
         
-        // load random video
-        int i = ofRandom(_vids.size());
-        if (i >= _vids.size()) i = _vids.size()-1;
-        path.vid = _vids[i];
-        if (!path.vid->isPlaying()) path.vid->play();
+        if (ofGetElapsedTimef() - _lastIR < _IRTimeout){ // continue path
+            continuePath = true;
+            if (hasIR) _lastIR = ofGetElapsedTimef();
+        }
+        else if (hasIR){ // new path
+            newPath = true;
+            _lastIR = ofGetElapsedTimef();
+        }
         
-        // add start point to polyline
-        path.path.addVertex(pos);
-        path.delTime = ofGetElapsedTimef()+1.5;
+        // create/continue vidPath
         
-        // mask wobble offset
-        path.maskOffset = ofRandom(100);
-        
-    } else if (continuePath) { // continued signal, continue current vid path
-        
-        if (_vidPaths.size() > 0){
-            auto& vidPath = _vidPaths.back();
+        if (newPath){ // new ir signal, new path
+            if (_vidPaths.size() >= _maxVidPaths) _bSynthStart = true;
+            else {
+                // create vid path
+                _vidPaths.push_back(VidPath());
+                VidPath& path = _vidPaths.back();
+                
+                // load random video
+                int i = ofRandom(_vids.size());
+                if (i >= _vids.size()) i = _vids.size()-1;
+                path.vid = _vids[i];
+                if (!path.vid->isPlaying()) path.vid->play();
+                
+                // add start point to polyline
+                path.path.addVertex(pos);
+                path.delTime = ofGetElapsedTimef()+1.5;
+                
+                // mask wobble offset
+                path.maskOffset = ofRandom(100);
+            }
+            
+        } else if (continuePath) { // continued signal, continue current vid path
+            
+            if (_vidPaths.size() > 0){
+                auto& vidPath = _vidPaths.back();
 
-            if (!vidPath.dead) {
-                // try adding point, if distance is far enough
-                ofVec2f lastPt = vidPath.path.getVertices().back();
-                float dist = lastPt.distance(pos);
-                if (dist > 3) vidPath.path.addVertex(pos);
-                else ofLogNotice("vidPaths") << "didn't add point to path, dist = " << dist;
+                if (!vidPath.dead) {
+                    // try adding point, if distance is far enough
+                    ofVec2f lastPt = vidPath.path.getVertices().back();
+                    float dist = lastPt.distance(pos);
+                    if (dist > 3) vidPath.path.addVertex(pos);
+                    else ofLogNotice("vidPaths") << "didn't add point to path, dist = " << dist;
+                }
             }
         }
     }
@@ -104,7 +149,6 @@ bool Drawing::update(ofVec2f pos, bool hasIR){
                 vidPath.path.clear();
                 if (pts.size() > 0) pts.pop_front(); // delete 1 point
                 vidPath.delTime = ofGetElapsedTimef();
-                ofLogNotice("vidPaths") << "vidPath " << i << " deleted pt, delTime = " << vidPath.delTime << ", num pts: " << pts.size();
                 
                 // -- add points back to polyline, unless empty
                 if (pts.size() == 0) {
@@ -136,7 +180,7 @@ bool Drawing::update(ofVec2f pos, bool hasIR){
     }
     
     _bHasIR = hasIR;
-
+    return false;
 }
 
 void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTexture* synthPtr){
@@ -159,11 +203,7 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
         ofDrawRectangle(x,y,w,h);
     }
     ofPopStyle();
-    
-    // synth
-    if (synthPtr!=nullptr){
-        synthPtr->draw(0,0,640,480);
-    }
+
     
     // draw vid paths
     for (auto& vidPath : _vidPaths){
@@ -193,10 +233,42 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
             _maskFbo.draw(*it-ofVec2f(_vidW*0.5,_vidW*0.5),_vidW,_vidW);
         }
     }
+    
+    // synth
+    if (_bSynthStart){
+        //_synthDraw.getTexture().setAlphaMask(_synthMask);
+        _synthDraw.begin();
+        if (synthPtr!=nullptr){
+            synthPtr->draw(0,0,_w,_h);
+        } else {
+            ofPushStyle();
+            ofSetColor(0);
+            ofDrawRectangle(0,0,_w,_h);
+            ofPopStyle();
+        }
+        _synthDraw.end();
+        _synthDraw.draw(0,0,_w,_h);
+    }
 }
 
 void Drawing::start(){
-    _bAddSynth = false;
+    _synthPath.clear();
+    _synthExpandStart = 0;
+    _bSynthStart = false;
+
+    // synth mask setup
+    _synthFbo.allocate(_w,_h,GL_RGBA);
+    _synthFbo.begin();
+    ofPushStyle();
+    ofSetColor(0);
+    ofDrawRectangle(0,0,_w,_h);
+    ofPopStyle();
+    _synthFbo.end();
+    ofTexture synthMaskTex = _synthFbo.getTexture();
+    _synthMask = synthMaskTex;
+    _synthDraw.allocate(_w,_h,GL_RGBA);
+    _synthDraw.getTexture().setAlphaMask(_synthMask);
+
 }
 
 void Drawing::end(){
