@@ -236,8 +236,8 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
     
     // synth
     if (_bSynthStart){
-        //_synthDraw.getTexture().setAlphaMask(_synthMask);
         _synthDraw.begin();
+        ofClear(0);
         if (synthPtr!=nullptr){
             synthPtr->draw(0,0,_w,_h);
         } else {
@@ -249,6 +249,8 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
         _synthDraw.end();
         _synthDraw.draw(0,0,_w,_h);
     }
+    
+
 }
 
 void Drawing::start(){
