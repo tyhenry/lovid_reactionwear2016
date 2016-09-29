@@ -35,12 +35,12 @@ protected:
     bool _bHasIR = false;
     vector<ofVideoPlayer*> _vids;
     vector<VidPath> _vidPaths;
-    int _maxVidPaths = 3;
+    int _maxVidPaths = 10;
     
     ofPolyline _synthPath;
     bool _bSynthStart = false;
     float _synthExpandStart = 0;
-    float _synthExpandWait = 4.0; // 4 seconds
+    float _synthExpandWait = 6.0; // 6 seconds
 
     float _lastBgHue = 220;
     float _delThresh = 0.3; // 0.6 second before delete point

@@ -335,8 +335,8 @@ void ofApp::updateKinect(){
         kinectFbo.end();
         kinectFbo.readToPixels(kinectPix);
         
-        //bool success = vidRecorder.addFrame(kinectPix);
-        //if (!success) cout << "failed to add vid frame to kinect recording" << endl;
+        bool success = vidRecorder.addFrame(kinectPix);
+        if (!success) cout << "failed to add vid frame to kinect recording" << endl;
         
         // get kinect depth img
         depthImg.setFromPixels(kinect.getDepthPixels());

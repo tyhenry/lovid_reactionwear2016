@@ -187,12 +187,11 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
     
     //bg
     ofPushStyle();
+    ofSetColor(255);
     if (_bHasIR){ // colorize
         float hue = ofRandom(150,240);
         hue = (_lastBgHue + hue) * 0.5;
         ofSetColor(ofColor::fromHsb(hue,255,255));
-    } else {
-        ofSetColor(0);
     }
     
     if (bgPtr != nullptr){ // draw kinect
@@ -200,6 +199,7 @@ void Drawing::draw(float x, float y, float w, float h, ofTexture* bgPtr, ofTextu
         cout << "drawing bg ptr" << endl;
     }
     else { // or draw solid color
+        if (!_bHasIR) ofSetColor(0);
         ofDrawRectangle(x,y,w,h);
     }
     ofPopStyle();
